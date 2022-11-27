@@ -37,7 +37,7 @@ export class ProductoServicioController {
         'application/json': {
           schema: getModelSchemaRef(ProductoServicio, {
             title: 'NewProductoServicio',
-            //exclude: ['id'],
+            exclude: ['id'],
           }),
         },
       },

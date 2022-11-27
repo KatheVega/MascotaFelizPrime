@@ -1,3 +1,4 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
@@ -26,6 +27,7 @@ export class ProspectoController {
     public prospectoRepository : ProspectoRepository,
   ) {}
 
+  @authenticate.skip()
   @post('/prospectos')
   @response(200, {
     description: 'Prospecto model instance',
@@ -47,6 +49,7 @@ export class ProspectoController {
     return this.prospectoRepository.create(prospecto);
   }
 
+  @authenticate.skip()
   @get('/prospectos/count')
   @response(200, {
     description: 'Prospecto model count',
@@ -58,6 +61,7 @@ export class ProspectoController {
     return this.prospectoRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/prospectos')
   @response(200, {
     description: 'Array of Prospecto model instances',

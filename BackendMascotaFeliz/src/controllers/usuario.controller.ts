@@ -1,3 +1,4 @@
+import {authenticate} from '@loopback/authentication';
 import { service } from '@loopback/core';
 import {
   Count,
@@ -11,52 +12,55 @@ import {
   post,
   param,
   get,
-  HttpErrors,
   getModelSchemaRef,
   patch,
   put,
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
-import {Usuario, Credenciales} from '../models';
+import {Usuario} from '../models';
 import {UsuarioRepository} from '../repositories';
-
-import { AutenticacionService } from '../services';
+import {AutenticacionService} from '../services/autenticacion.service';
+import { Credenciales } from '../models/credenciales.model';
 const fetch = require('node-fetch');
-
 
 export class UsuarioController {
   constructor(
     @repository(UsuarioRepository)
     public usuarioRepository : UsuarioRepository,
     @service(AutenticacionService)
-    public servicioAutenticacion : AutenticacionService
+    public servicioAutenticacion:AutenticacionService,
   ) {}
 
-  @post('/userauth', {
-    responses: {
-      "200": {
-        descripcion: 'identificador de usuarios'
+  @authenticate.skip()
+  @post('/identificarusuario',{
+    responses:{
+      '200':{
+        descripcion:'identificacion de usuario'
       }
     }
   })
-  async userauth(
-    @requestBody() Credenciales: Credenciales
-  ) {
-    const p = await this.servicioAutenticacion.authUser(Credenciales.usuario, Credenciales.clave)
-    if (p) {
-      const token = this.servicioAutenticacion.getJWT(p)
+  async identificarUsuario(
+    @requestBody() credeciales : Credenciales
+  ){
+    let p = await this.servicioAutenticacion.IdentificarUsuario(credeciales.usuario, credeciales.clave);
+    if(p){
+      let token = this.servicioAutenticacion.GenerarTokenJWT(p);
       return {
-        datos: {
-          nombre: p.nombre, 
-          correo: p.correo, 
+        datos:{
+          nombre: p.nombre,
+          apellido: p.apellido,
+          correo:p.correo,
+          rol:p.rol,
           id: p.id
-        }, 
-          tk: token
+        },
+        tk: token
       }
-    } else {
-      throw new HttpErrors[401]('Los datos son invalidos')
+    }
+    else {
+      throw new HttpErrors[401]('los datos de autenticacion son invalidos');
     }
   }
 
@@ -72,30 +76,29 @@ export class UsuarioController {
         'application/json': {
           schema: getModelSchemaRef(Usuario, {
             title: 'NewUsuario',
-            
+            exclude: ['id'],
           }),
         },
       },
     })
-    usuario: Usuario,
+    usuario: Omit<Usuario, 'id'>,
   ): Promise<Usuario> {
     let clave = this.servicioAutenticacion.GenerarClave();
     let claveCifrada = this.servicioAutenticacion.CifrarClave(clave);
-    usuario.contrasena =claveCifrada
+    usuario.contrasena = claveCifrada;
     let p = await this.usuarioRepository.create(usuario);
 
+    //notificacion al usuario
     let destino = usuario.correo;
-    let asunto = "credenciales de acceso"
-    let contenido = `hola ${usuario.nombre},su usuario es ${usuario.correo} y su contraseña es ${usuario.contrasena}`
-    
+    let asunto = "bienvenido, su credencial a mascotafeliz.... "
+    let contenido = `Hola ${usuario.nombre} ${usuario.apellido}, su usuario
+      es: ${usuario.correo} y su contraseña generada es: ${clave}`;
     fetch(`http://127.0.0.1:5000/email?correo_destino=${destino}&asunto=${asunto}&contenido=${contenido}`)
-    .then((data:any)=>{
-      console.log(data)
-      
-    })
-    
-    return p
-  } 
+      .then((data:any)=>{
+        console.log(data);
+      })
+      return p;
+  }
 
   @get('/usuarios/count')
   @response(200, {

@@ -21,6 +21,12 @@ export class Mascota extends Entity {
     type: 'string',
     required: true,
   })
+  color: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
   foto: string;
 
   @property({

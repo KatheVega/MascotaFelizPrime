@@ -5,6 +5,7 @@ export class Sucursal extends Entity {
   @property({
     type: 'string',
     id: true,
+    
     generated: true,
   })
   id?: string;
@@ -13,7 +14,7 @@ export class Sucursal extends Entity {
     type: 'string',
     required: true,
   })
-  Departamento: string;
+  departamento: string;
 
   @property({
     type: 'string',

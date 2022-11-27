@@ -1,3 +1,4 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
@@ -17,6 +18,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+
 import {Mascota} from '../models';
 import {MascotaRepository} from '../repositories';
 
@@ -25,6 +27,7 @@ export class MascotaController {
     @repository(MascotaRepository)
     public mascotaRepository : MascotaRepository,
   ) {}
+
 
   @post('/mascotas')
   @response(200, {
@@ -58,6 +61,7 @@ export class MascotaController {
     return this.mascotaRepository.count(where);
   }
 
+  @authenticate.skip()
   @get('/mascotas')
   @response(200, {
     description: 'Array of Mascota model instances',
@@ -129,6 +133,7 @@ export class MascotaController {
     await this.mascotaRepository.updateById(id, mascota);
   }
 
+  @authenticate.skip()
   @put('/mascotas/{id}')
   @response(204, {
     description: 'Mascota PUT success',

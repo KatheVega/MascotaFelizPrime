@@ -1,4 +1,4 @@
-import {injectable, BindingScope} from '@loopback/core';
+import {injectable, /* inject, */ BindingScope} from '@loopback/core';
 import { repository } from '@loopback/repository';
 import {UsuarioRepository} from '../repositories';
 import {Llaves} from '../config/llaves'
@@ -11,51 +11,58 @@ const jwt = require('jsonwebtoken')
 @injectable({scope: BindingScope.TRANSIENT})
 export class AutenticacionService {
   constructor(
-@repository(UsuarioRepository)
-public usuarioRepository : UsuarioRepository
-){}
-  
+    @repository(UsuarioRepository)
+    public usuarioRepositorio:UsuarioRepository
+  ) {}
 
-GenerarClave(){
-  let clave = generador(8,false);
-  return clave;
-}
+  /*
+   * Add service methods here
+   */
 
-CifrarClave(clave:string){
-  let claveCifrada = cryptoJS.MD5(clave).toString();
-  return claveCifrada;
-}
+  GenerarClave(){
+    let clave = generador(8,false);
+    return clave;
+  }
 
-authUser(user: string, key: string) {
-  try {
-    const u = this.usuarioRepository.findOne({
-      where: {correo: user, contrasena: key}
-    })
-    if (u) {
-      return u
+  CifrarClave( clave: string){
+    let claveCifrada = cryptoJS.MD5(clave).toString();
+    return claveCifrada;
+  }
+
+  IdentificarUsuario(usuario:string, clave:string){
+    try {
+      let p = this.usuarioRepositorio.findOne({where:{correo:usuario, contrasena:clave }});
+      if (p){
+        return p;
+      }
+      return false;
+    } catch {
+      return false;
     }
-    return false
-  } catch (error) {
-    return false
   }
-}
 
-getJWT(user: Usuario) {
-  const token = jwt.sign({
-    data: {id: user.id, correo: user.correo, nombre: user.nombre},
-  },
-    Llaves.claveJWT)
-  return token
-}
-
-validJWT(token: string) {
-  try {
-    const datos = jwt.verify(token, Llaves.claveJWT)
-    return datos
-  } catch {
-    return false
+  GenerarTokenJWT(usuario:Usuario){
+    let token = jwt.sign({
+      data:{
+        id: usuario.id,
+        correo: usuario.correo,
+        nombre: usuario.nombre,
+        rol: usuario.rol,
+        apellido: usuario.apellido
+      }
+    },
+    Llaves.claveJWT
+    );
+    return  token;
   }
-}
 
+  ValidarTokenJWT(token:string){
+    try {
+      let datos = jwt.verify(token, Llaves.claveJWT);
+      return datos;
+    } catch {
+      return false;
+    }
+  }
 
 }

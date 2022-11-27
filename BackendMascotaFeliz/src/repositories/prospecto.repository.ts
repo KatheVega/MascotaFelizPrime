@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {MongodbDataSource} from '../datasources';
+import {MascotadbDataSource} from '../datasources';
 import {Prospecto, ProspectoRelations} from '../models';
 
 export class ProspectoRepository extends DefaultCrudRepository<
@@ -9,7 +9,7 @@ export class ProspectoRepository extends DefaultCrudRepository<
   ProspectoRelations
 > {
   constructor(
-    @inject('datasources.mongodb') dataSource: MongodbDataSource,
+    @inject('datasources.mascotadb') dataSource: MascotadbDataSource,
   ) {
     super(Prospecto, dataSource);
   }
